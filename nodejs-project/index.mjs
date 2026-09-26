@@ -9,6 +9,14 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys'
 import pino from 'pino'
 
+// Jangan biarkan error async Baileys mematikan embedded Node / proses APK.
+process.on('uncaughtException', err => {
+  console.error('[uncaughtException]', err)
+})
+process.on('unhandledRejection', err => {
+  console.error('[unhandledRejection]', err)
+})
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -29,6 +37,8 @@ let connected = false
 let registered = false
 let pairingReady = false
 let connecting = false
+let pairingInProgress = false
+let currentCreds = null
 const conversations = new Map()
 const logger = pino({ level: 'silent' })
 
@@ -164,6 +174,7 @@ async function connectWhatsApp() {
   connecting = true
   try {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR)
+    currentCreds = state.creds
     registered = !!state.creds.registered
 
     sock = makeWASocket({
@@ -178,7 +189,8 @@ async function connectWhatsApp() {
 
     sock.ev.on('creds.update', async () => {
       await saveCreds()
-      registered = !!sock?.authState?.creds?.registered
+      currentCreds = state.creds
+      registered = !!state.creds.registered
     })
 
     sock.ev.on('connection.update', update => {
@@ -226,15 +238,25 @@ async function connectWhatsApp() {
 async function requestPairing(phone) {
   phone = String(phone || '').replace(/\D/g, '')
   if (phone.length < 8) throw new Error('Nomor tidak valid. Gunakan format 62812...')
-  if (!sock) throw new Error('Socket WhatsApp belum siap')
-  if (sock.authState?.creds?.registered) return { alreadyRegistered: true }
+  if (registered || currentCreds?.registered) return { alreadyRegistered: true }
+  if (!sock) throw new Error('Socket WhatsApp belum siap. Tekan NYALAKAN BOT lalu coba lagi.')
+  if (pairingInProgress) throw new Error('Permintaan pairing sedang diproses. Tunggu beberapa detik.')
 
-  const deadline = Date.now() + 20000
-  while (!pairingReady && Date.now() < deadline) {
-    await new Promise(r => setTimeout(r, 250))
+  pairingInProgress = true
+  try {
+    // Beri WebSocket waktu untuk benar-benar siap.
+    const deadline = Date.now() + 20000
+    while (!pairingReady && Date.now() < deadline) {
+      await new Promise(r => setTimeout(r, 250))
+    }
+    await new Promise(r => setTimeout(r, 1200))
+
+    const code = await sock.requestPairingCode(phone)
+    return { code, alreadyRegistered: false }
+  } finally {
+    // Cegah klik ganda/overlapping pairing state.
+    setTimeout(() => { pairingInProgress = false }, 3000)
   }
-  const code = await sock.requestPairingCode(phone)
-  return { code, alreadyRegistered: false }
 }
 
 function esc(v) {
@@ -286,7 +308,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, {
         ok: true,
         connected,
-        registered: !!sock?.authState?.creds?.registered || registered,
+        registered: !!currentCreds?.registered || registered,
         pairingReady,
         pending: jobs.filter(j => j.status === 'PENDING').length,
         node: process.version
