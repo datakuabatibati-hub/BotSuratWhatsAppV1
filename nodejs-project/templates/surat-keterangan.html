@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@page { size: A4; margin: 18mm 20mm 18mm 20mm; }
+body { font-family: "Times New Roman", serif; color:#111; font-size:12pt; line-height:1.45; }
+.kop { text-align:center; font-weight:bold; }
+.kop .besar { font-size:16pt; }
+.garis { border-top:3px solid #000; border-bottom:1px solid #000; height:2px; margin:8px 0 20px; }
+h1 { text-align:center; font-size:14pt; text-decoration:underline; margin:0; }
+.nomor { text-align:center; margin:2px 0 24px; }
+table { width:100%; border-collapse:collapse; margin:12px 0; }
+td { vertical-align:top; padding:3px 0; }
+td.label { width:30%; }
+td.sep { width:4%; }
+.ttd { width:45%; margin-left:auto; text-align:center; margin-top:42px; }
+.small { font-size:10pt; }
+</style>
+</head>
+<body>
+<div class="kop">
+  <div>KEMENTERIAN AGAMA REPUBLIK INDONESIA</div>
+  <div class="besar">KANTOR URUSAN AGAMA KECAMATAN BATI-BATI</div>
+  <div class="small">Template V1 — silakan ganti kop/alamat sesuai format resmi kantor</div>
+</div>
+<div class="garis"></div>
+<h1>SURAT KETERANGAN</h1>
+<div class="nomor">Nomor: {{nomor}}</div>
+
+<p>Yang bertanda tangan di bawah ini menerangkan bahwa:</p>
+<table>
+<tr><td class="label">Nama</td><td class="sep">:</td><td><b>{{nama}}</b></td></tr>
+<tr><td class="label">NIK</td><td class="sep">:</td><td>{{nik}}</td></tr>
+<tr><td class="label">Alamat</td><td class="sep">:</td><td>{{alamat}}</td></tr>
+<tr><td class="label">Keperluan</td><td class="sep">:</td><td>{{keperluan}}</td></tr>
+</table>
+
+<p>Demikian surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
+
+<div class="ttd">
+  <div>Bati-Bati, {{tanggal}}</div>
+  <div>Kepala/Petugas,</div>
+  <br><br><br>
+  <div><b>__________________________</b></div>
+</div>
+</body>
+</html>

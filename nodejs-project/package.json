@@ -1,0 +1,12 @@
+{
+  "name": "bot-surat-wa-embedded",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@hapi/boom": "^9.1.4",
+    "@whiskeysockets/baileys": "github:WhiskeySockets/Baileys#master",
+    "pino": "^9.9.0"
+  }
+}
